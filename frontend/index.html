@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker API - Hand Evaluator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .api-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .api-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d73a49;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .card-input {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .card label {
+            display: block;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .result {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .result p {
+            color: #155724;
+            font-size: 1.1em;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .feature h3 {
+            color: #667eea;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 Poker Hand Evaluator</h1>
+        <p class="subtitle">FastAPI + Pydantic + Firebase + Pandas</p>
+
+        <div class="api-info">
+            <strong>API Endpoint:</strong> <code id="apiUrl">https://your-railway-app.railway.app</code><br>
+            <small>Update the API URL in the JavaScript code below</small>
+        </div>
+
+        <div class="section">
+            <h2>Evaluate Your Hand</h2>
+            <div class="card-input">
+                <div class="card">
+                    <label>Card 1</label>
+                    <select id="rank1">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="J">J</option>
+                        <option value="Q">Q</option>
+                        <option value="K">K</option>
+                        <option value="A" selected>A</option>
+                    </select>
+                    <select id="suit1">
+                        <option value="hearts">♥ Hearts</option>
+                        <option value="diamonds">♦ Diamonds</option>
+                        <option value="clubs">♣ Clubs</option>
+                        <option value="spades" selected>♠ Spades</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <label>Card 2</label>
+                    <select id="rank2">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="J">J</option>
+                        <option value="Q">Q</option>
+                        <option value="K" selected>K</option>
+                        <option value="A">A</option>
+                    </select>
+                    <select id="suit2">
+                        <option value="hearts">♥ Hearts</option>
+                        <option value="diamonds">♦ Diamonds</option>
+                        <option value="clubs">♣ Clubs</option>
+                        <option value="spades" selected>♠ Spades</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <label>Card 3</label>
+                    <select id="rank3">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="J">J</option>
+                        <option value="Q" selected>Q</option>
+                        <option value="K">K</option>
+                        <option value="A">A</option>
+                    </select>
+                    <select id="suit3">
+                        <option value="hearts">♥ Hearts</option>
+                        <option value="diamonds">♦ Diamonds</option>
+                        <option value="clubs">♣ Clubs</option>
+                        <option value="spades" selected>♠ Spades</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <label>Card 4</label>
+                    <select id="rank4">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="J" selected>J</option>
+                        <option value="Q">Q</option>
+                        <option value="K">K</option>
+                        <option value="A">A</option>
+                    </select>
+                    <select id="suit4">
+                        <option value="hearts">♥ Hearts</option>
+                        <option value="diamonds">♦ Diamonds</option>
+                        <option value="clubs">♣ Clubs</option>
+                        <option value="spades" selected>♠ Spades</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <label>Card 5</label>
+                    <select id="rank5">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10" selected>10</option>
+                        <option value="J">J</option>
+                        <option value="Q">Q</option>
+                        <option value="K">K</option>
+                        <option value="A">A</option>
+                    </select>
+                    <select id="suit5">
+                        <option value="hearts">♥ Hearts</option>
+                        <option value="diamonds">♦ Diamonds</option>
+                        <option value="clubs">♣ Clubs</option>
+                        <option value="spades" selected>♠ Spades</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="evaluateHand()">Evaluate Hand</button>
+
+            <div class="result" id="result">
+                <h3>Result:</h3>
+                <p id="resultText"></p>
+            </div>
+
+            <div class="error" id="error">
+                <p id="errorText"></p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Features</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>FastAPI</h3>
+                    <p>Modern, fast web framework</p>
+                </div>
+                <div class="feature">
+                    <h3>Pydantic</h3>
+                    <p>Data validation</p>
+                </div>
+                <div class="feature">
+                    <h3>Firebase</h3>
+                    <p>Cloud database</p>
+                </div>
+                <div class="feature">
+                    <h3>Pandas</h3>
+                    <p>CSV processing</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="#" id="docsLink">API Documentation</a>
+            <a href="https://github.com/samfeldman824/putrtest" target="_blank">GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        // Update this URL to your Railway deployment URL
+        const API_URL = 'http://localhost:8000';
+        
+        document.getElementById('docsLink').href = `${API_URL}/docs`;
+        document.getElementById('apiUrl').textContent = API_URL;
+
+        async function evaluateHand() {
+            const cards = [];
+            for (let i = 1; i <= 5; i++) {
+                cards.push({
+                    rank: document.getElementById(`rank${i}`).value,
+                    suit: document.getElementById(`suit${i}`).value
+                });
+            }
+
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            
+            // Hide previous results
+            resultDiv.classList.remove('show');
+            errorDiv.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/evaluate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cards })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to evaluate hand');
+                }
+
+                const data = await response.json();
+                document.getElementById('resultText').textContent = 
+                    `${data.description} (${data.rank.replace(/_/g, ' ').toUpperCase()})`;
+                resultDiv.classList.add('show');
+            } catch (error) {
+                document.getElementById('errorText').textContent = 
+                    `Error: ${error.message}. Make sure the API is running.`;
+                errorDiv.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
